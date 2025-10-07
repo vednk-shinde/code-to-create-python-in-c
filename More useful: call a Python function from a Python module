@@ -1,0 +1,64 @@
+# mymodule.py
+def multiply(a, b):
+    return a * b
+
+def greet(name):
+    return f"Hello, {name}!"
+
+
+#include <Python.h>
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+    PyObject *pName, *pModule, *pFunc;
+    PyObject *pArgs, *pValue;
+
+    // Initialize Python interpreter
+    Py_Initialize();
+
+    // Ensure current directory is in sys.path so mymodule.py can be found
+    PyRun_SimpleString("import sys; sys.path.insert(0, '')");
+
+    // Import the module name (no .py)
+    pName = PyUnicode_FromString("mymodule");
+    pModule = PyImport_Import(pName);
+    Py_DECREF(pName);
+
+    if (pModule != NULL) {
+        // Get the function multiply
+        pFunc = PyObject_GetAttrString(pModule, "multiply");
+        if (pFunc && PyCallable_Check(pFunc)) {
+            // Build arguments (2 and 5)
+            pArgs = PyTuple_New(2);
+            PyTuple_SetItem(pArgs, 0, PyLong_FromLong(2)); // steals ref
+            PyTuple_SetItem(pArgs, 1, PyLong_FromLong(5)); // steals ref
+
+            // Call the function
+            pValue = PyObject_CallObject(pFunc, pArgs);
+            Py_DECREF(pArgs);
+
+            if (pValue != NULL) {
+                long result = PyLong_AsLong(pValue);
+                printf("multiply(2,5) = %ld\n", result);
+                Py_DECREF(pValue);
+            } else {
+                PyErr_Print();
+                fprintf(stderr, "Call failed\n");
+            }
+            Py_DECREF(pFunc);
+        } else {
+            if (PyErr_Occurred()) PyErr_Print();
+            fprintf(stderr, "Cannot find function 'multiply'\n");
+        }
+        Py_DECREF(pModule);
+    } else {
+        PyErr_Print();
+        fprintf(stderr, "Failed to load 'mymodule'\n");
+    }
+
+    // Finalize
+    if (Py_FinalizeEx() < 0) {
+        return 120;
+    }
+    return 0;
+}
