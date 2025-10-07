@@ -1,0 +1,20 @@
+#include <Python.h>
+
+int main(int argc, char *argv[]) {
+    // Initialize the Python interpreter
+    Py_Initialize();
+
+    // Run a simple Python statement
+    PyRun_SimpleString("print('Hello from embedded Python!')");
+
+    // Optionally run multiple lines
+    PyRun_SimpleString(
+        "def add(a, b):\n"
+        "    return a + b\n"
+        "print('2 + 3 =', add(2, 3))\n"
+    );
+
+    // Finalize the interpreter
+    Py_Finalize();
+    return 0;
+}
